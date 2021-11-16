@@ -42,11 +42,11 @@ Rectangle "Subscription 1" <<subscription>> as subscription  {
     Rectangle "Central US" <<region>> as centralus #line.dotted {
         NetworkSecurityGroups(nsg1, "NSG 1","Flow logs: <b>enabled</b>")
         NetworkSecurityGroups(nsg2, "NSG 2","Flow logs: <b>enabled</b>")
-        StorageAccounts(storage1, "Flow Logs", "Deny internet, subnet allow list", "Name: <b>centusflowlogs</b>")
+        StorageAccounts(storage1, "Flow Logs", "Deny Internet, allow <b>Trusted Microsoft Services<b>", "Name: <b>centusflowlogs</b>")
         nsg1 -[#268bd2]-> storage1
         nsg2 -[#268bd2]-> storage1
 
-            LogAnalyticsWorkspaces(logs, "Flow Logs", "", "Name: <b>sub1flowlogs</b>")
+        LogAnalyticsWorkspaces(logs, "Flow Logs", "", "Name: <b>sub1flowlogs</b>")
     }
 
     flowLogSettingsCentralUS <-[#b48900]- nsg1
@@ -57,7 +57,7 @@ Rectangle "Subscription 1" <<subscription>> as subscription  {
     Rectangle "East US 2" <<region>> as eus2 #line.dotted {
         NetworkSecurityGroups(nsg3, "NSG 3","Flow logs: <b>enabled</b>")
         NetworkSecurityGroups(nsg4, "NSG 4","Flow logs: <b>enabled</b>")
-        StorageAccounts(storage2, "Flow Logs", "Deny internet, subnet allow list", "Name: <b>eus2flowlogs</b>")
+        StorageAccounts(storage2, "Flow Logs", "Deny Internet, allow <b>Trusted Microsoft Services<b>", "Name: <b>eus2flowlogs</b>")
         nsg3 -[#268bd2]-> storage2
         nsg4 -[#268bd2]-> storage2
     }
