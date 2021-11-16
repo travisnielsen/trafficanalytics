@@ -1,0 +1,77 @@
+@startuml traffic-analytics
+
+!define AzurePuml https://raw.githubusercontent.com/travisnielsen/Azure-PlantUML/release/3-0/dist
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Container.puml
+!includeurl AzurePuml/AzureCommon.puml
+!includeurl AzurePuml/General/Subscriptions.puml
+!includeurl AzurePuml/General/ManagementPortal.puml
+!includeurl AzurePuml/ManagementGovernance/NetworkWatcher.puml
+!includeurl AzurePuml/ManagementGovernance/LogAnalyticsWorkspaces.puml
+!includeurl AzurePuml/Networking/NetworkSecurityGroups.puml
+!includeurl AzurePuml/Networking/PrivateLink.puml
+!includeurl AzurePuml/Networking/PrivateLinkService.puml
+!includeurl AzurePuml/Networking/VirtualNetworks.puml
+!includeurl AzurePuml/Storage/StorageAccounts.puml
+
+LAYOUT_LEFT_RIGHT
+
+skinparam BackgroundColor #002b36
+skinparam TitleFontColor #eee8d5
+skinparam TitleFontSize 35
+skinparam ArrowThickness 3
+
+skinparam Rectangle {
+    BackgroundColor<<region>> #93a1a1
+    BackgroundColor<<subscription>> #073642
+    FontColor<<subscription>> #eee8d5
+}
+
+skinparam rectangle<<container>> {
+    BackgroundColor<<Subscriptions>> #073642
+    BackgroundColor<<NetworkSecurityGroups>> #eee8d5
+    BackgroundColor<<StorageAccounts>> #eee8d5
+    BackgroundColor<<LogAnalyticsWorkspaces>> #eee8d5
+    BackgroundColor<<NetworkWatcher>> #eee8d5
+    BackgroundColor<<FlowLogSettings>> #002b36
+}
+
+Rectangle "Subscription 1" <<subscription>> as subscription  {
+
+    Container(flowLogSettingsCentralUS, "Flow Log Settings", "Central US", "30 day retention\nTraffic Analytics <b>enabled</b>\nStorage account: <b>centusflowlogs</b>\nLog Analytics workspace: <b>sub1flowlogs</b>")
+
+    Rectangle "Central US" <<region>> as centralus #line.dotted {
+        NetworkSecurityGroups(nsg1, "NSG 1","Flow logs: <b>enabled</b>")
+        NetworkSecurityGroups(nsg2, "NSG 2","Flow logs: <b>enabled</b>")
+        StorageAccounts(storage1, "Flow Logs", "Deny internet, subnet allow list", "Name: <b>centusflowlogs</b>")
+        nsg1 -[#268bd2]-> storage1
+        nsg2 -[#268bd2]-> storage1
+
+            LogAnalyticsWorkspaces(logs, "Flow Logs", "", "Name: <b>sub1flowlogs</b>")
+    }
+
+    flowLogSettingsCentralUS <-[#b48900]- nsg1
+    flowLogSettingsCentralUS <-[#b48900]- nsg2
+
+    Container(flowLogSettingsEUS2, "Flow Log Settings", "East US 2", "30 day retention\nTraffic Analytics <b>enabled</b>\nStorage account: <b>eus2flowlogs</b>\nLog Analytics workspace: <b>sub1flowlogs</b>")
+
+    Rectangle "East US 2" <<region>> as eus2 #line.dotted {
+        NetworkSecurityGroups(nsg3, "NSG 3","Flow logs: <b>enabled</b>")
+        NetworkSecurityGroups(nsg4, "NSG 4","Flow logs: <b>enabled</b>")
+        StorageAccounts(storage2, "Flow Logs", "Deny internet, subnet allow list", "Name: <b>eus2flowlogs</b>")
+        nsg3 -[#268bd2]-> storage2
+        nsg4 -[#268bd2]-> storage2
+    }
+
+    flowLogSettingsEUS2 <-[#b48900]- nsg3
+    flowLogSettingsEUS2 <-[#b48900]- nsg4
+
+
+    storage1 <-[#268bd2]- logs
+    storage2 <-[#268bd2]- logs
+
+}
+
+NetworkWatcher(netwatcher, "Traffic Analytics", "Enabled for: Central US, East US 2")
+logs -[#268bd2]-> netwatcher
+
+@enduml
