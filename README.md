@@ -42,4 +42,15 @@ az deployment sub create --name networkwatchersample --location centralus --temp
 
 ## Enable Traffic Analytics
 
-COMING SOON
+Navigate to the `scripts` director and run the following command to authenticate to Azure and connect to the target subscription:
+
+```powershell
+Connect-AzAccount
+Set-AzContext -subscription "YOUR_SUBSCRIPTION_ID"
+```
+
+Next, run the script to enable flow logs for all NSGs in the subscription. Be sure to set the value of each parameter to match your environment.
+
+```powershell
+.\enable-nsgflows.ps1 -region "" -networkWatcherRG "" -storageAcctRG "" -storageAcctName "" -logWorkspaceRG "" -logWorkspaceName ""
+```
