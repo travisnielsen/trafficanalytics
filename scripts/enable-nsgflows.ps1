@@ -12,7 +12,8 @@ param (
     [Parameter(Mandatory)][string]$storageAcctRG,
     [Parameter(Mandatory)][string]$storageAcctName,
     [Parameter(Mandatory)][string]$logWorkspaceRG,
-    [Parameter(Mandatory)][string]$logWorkspaceName
+    [Parameter(Mandatory)][string]$logWorkspaceName,
+    [Parameter(Mandatory)][string]$logWorkspaceRegion
 )
 
 $networkWatcherName = "NetworkWatcher_${region}"
@@ -46,7 +47,7 @@ foreach ($nsg in $nsgs) {
             -EnableTrafficAnalytics `
             -WorkspaceResourceId $logAnalytics.ResourceId `
             -WorkspaceGUID $logAnalytics.CustomerId `
-            -WorkspaceLocation $region `
+            -WorkspaceLocation $logWorkspaceRegion `
             -TrafficAnalyticsInterval 10
         }
     }
