@@ -7,6 +7,8 @@ param tags object = {
   environment: 'sandbox'
 }
 
+var networkWatcherName = 'NetworkWatcher_${region1}'
+
 resource netrg 'Microsoft.Resources/resourceGroups@2020-06-01' = {
   name: '${demoPrefix}-network'
   location: region1
@@ -35,7 +37,7 @@ param region1AddressSpaces array = [
 param region1SubnetBlockAzFW string = '10.0.0.0/25'           // 123 addresses - 10.0.0.0 - 10.0.0.127
 param region1SubnetBlockBastion string = '10.0.0.128/25'      // 123 addresses - 10.0.0.128 - 10.0.0.255
 param region1SubnetBlockAppGateway string = '10.0.1.0/25'     // 123 addresses - 10.0.1.0 - 10.0.1.127
-param region1SubnetBlockWebServers string = '10.0.1.128/25'     // 123 addresses - 10.0.1.128 - 10.0.1.255
+param region1SubnetBlockWebServers string = '10.0.1.128/25'   // 123 addresses - 10.0.1.128 - 10.0.1.255
 
 
 // ------------------------------------------------------------
@@ -303,6 +305,8 @@ module webserver 'modules/vm-ubuntu.bicep' = {
     subnetName: 'WebServers'
     adminUserName: vmAdminUserName
     adminPassword: vmAdminPwd
+    cloudInitData: loadFileAsBase64('nginx.sh')
+    networkWatcherAgent: true
   }
 }
 
@@ -317,6 +321,8 @@ module appserver 'modules/vm-ubuntu.bicep' = {
     subnetName: 'AppServers'
     adminUserName: vmAdminUserName
     adminPassword: vmAdminPwd
+    cloudInitData: loadFileAsBase64('nginx.sh')
+    networkWatcherAgent: false
   }
 }
 
@@ -354,5 +360,26 @@ module logAnalytics 'modules/loganalytics.bicep' = {
   params: {
     appTags: tags
     name: '${uniqueString(netrg.id)}'
+  }
+}
+
+
+// ------------------------------------------------------------
+// Connection Monitor
+// ------------------------------------------------------------
+
+module connectionMonitorAppServer 'modules/connectionMonitorHttpBasic.bicep' = {
+  name: 'appserver-connectionmonitor'
+  scope: resourceGroup('NetworkWatcherRG')
+  params: {
+    appTags: tags
+    connectionMonitorName: '${uniqueString(netrg.id)}'
+    workspaceResourceId: logAnalytics.outputs.id
+    sourceName: webserver.name
+    sourceResourceId: webserver.outputs.vmId
+    destName: appserver.name
+    destResourceId: appserver.outputs.vmId
+    netWatcherName: networkWatcherName
+    netWatcherLocation: region1
   }
 }

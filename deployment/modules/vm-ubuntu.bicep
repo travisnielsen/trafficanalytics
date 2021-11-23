@@ -3,6 +3,8 @@ param networkResourceGroupName string
 param vnetName string
 param subnetName string
 param adminUserName string
+param cloudInitData string = 'none'
+param networkWatcherAgent bool
 
 @secure()
 param adminPassword string
@@ -15,6 +17,8 @@ param location string = resourceGroup().location
 
 var subscriptionId = subscription().subscriptionId
 var nicName = '${vmName}-nic'
+
+
 
 resource nInter 'Microsoft.Network/networkInterfaces@2020-06-01' = {
   name: nicName
@@ -45,6 +49,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2020-06-01' = {
       computerName: vmName
       adminUsername: adminUserName
       adminPassword: adminPassword
+      customData: (cloudInitData == 'none') ? null : cloudInitData
     }
     storageProfile: {
       imageReference: {
@@ -94,6 +99,17 @@ resource autoShutdown 'Microsoft.DevTestLab/schedules@2016-05-15' = {
     }
     targetResourceId: vm.id
   }
+}
+
+resource extension 'Microsoft.Compute/virtualMachines/extensions@2021-07-01' = if (networkWatcherAgent == true) {
+  name: '${vm.name}/AzureNetworkWatcherExtension'
+   location: location
+   properties: {
+     autoUpgradeMinorVersion: true
+     publisher: 'Microsoft.Azure.NetworkWatcher'
+     type: 'NetworkWatcherAgentLinux'
+     typeHandlerVersion: '1.4'
+   }
 }
 
 output vmId string = vm.id
